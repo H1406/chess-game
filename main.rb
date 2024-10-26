@@ -24,9 +24,12 @@ class Main < Gosu::Window
     column_index = 0 
     @check = false
     @turn = "white"
+    @es_passant = false
     dark = true
     @winner = ''
     @holding = false
+    @last_pos = []
+    @last_piece
     # Tracking king and rook movements
     @white_king_moved = false
     @black_king_moved = false
@@ -455,6 +458,9 @@ class Main < Gosu::Window
           piece = @white_pieces[@white_locations.index(mouse_pos)]
           @pos_move = check_option(piece, mouse_pos)
           @current_piece = @white_locations.index(mouse_pos)
+          if @white_pieces[@white_locations.index(mouse_pos)] =='pawn' and @es_passant and @last_pos[1] == 6 and y == 4 and (x ==@last_pos[0]+1 or x == @last_pos[0]-1)
+            @pos_move << [@last_pos[0],5]
+          end
           @holding = true
         end
       elsif @turn == "black"
@@ -462,6 +468,9 @@ class Main < Gosu::Window
           piece = @black_pieces[@black_locations.index(mouse_pos)]
           @pos_move = check_option(piece, mouse_pos)
           @current_piece = @black_locations.index(mouse_pos)
+          if piece =='pawn' and @es_passant and @last_pos[1] == 1 and y ==3 and (x ==@last_pos[0]+1 or x == @last_pos[0]-1)
+            @pos_move << [@last_pos[0],2]
+          end
           @holding = true 
         end
       end
@@ -496,25 +505,54 @@ class Main < Gosu::Window
           @black_rook_right_moved = true if @turn == "black" and @black_locations[@current_piece] ==[7,7]
         end
         if @turn == "white"
+          if @es_passant and @pos_move.include?([@last_pos[0],5]) and mouse_pos == [@last_pos[0],5]
+            @black_pieces.delete_at(@black_locations.index([mouse_pos[0],mouse_pos[1]-1]))
+            @black_locations.delete([mouse_pos[0],mouse_pos[1]-1])
+            @last_pos = nil
+            @es_passant = false
+          end
+          @last_pos = @white_locations[@current_piece]
           @white_locations[@current_piece] = mouse_pos
           capture()
           king_check()
+          @es_passant = can_es_passant?()
           @turn = "black"
           @holding = false
+
         elsif @turn == "black"
+          if @es_passant and @pos_move.include?([@last_pos[0],3]) and mouse_pos == [@last_pos[0],3]
+            @white_pieces.delete_at(@white_locations.index([mouse_pos[0],mouse_pos[1]+1]))
+            @white_locations.delete([mouse_pos[0],mouse_pos[1]-1])
+            @last_pos = nil
+            @es_passant = false
+          end
+          @last_pos = @black_locations[@current_piece]
           @black_locations[@current_piece] = mouse_pos
           capture()
           king_check()
+          @es_passant = can_es_passant?()
           @turn = "white"
-          @holding = false
+          @holding = false  
         end
         @pos_move = nil
       else
         # If the player clicks on an invalid position, release the piece without moving
         @holding = false
         @pos_move = nil
+        @es_passant = false
+        @last_pos = nil
       end
     end
+  end
+  def can_es_passant?
+    if @white_pieces[@current_piece]=='pawn' and @turn == 'white'
+      @last_piece = @current_piece
+      return true
+    elsif @black_pieces[@current_piece] == 'pawn' and @turn =='black'
+      @last_piece= @current_piece
+      return true
+    end
+    return false
   end
   def castling_move(side)
     if @turn == "white" && side == "king"
@@ -539,7 +577,6 @@ class Main < Gosu::Window
       @turn = 'white'
     end
   end
-  
   def king_check()
     if @turn == "white"
       king_index = @black_pieces.index('king')
