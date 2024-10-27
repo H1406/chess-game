@@ -3,6 +3,13 @@ require 'gosu'
 WIDTH = 800
 HEIGHT = 800
 CELL_DIM = 100
+
+PAWN_VALUE = 100
+KNIGHT_VALUE = 300
+BISHOP_VALUE = 300
+ROOK_VALUE =500
+QUEEN_VALUE = 900
+
 module ZOrder
   BACKGROUND, MIDDLE, TOP = *0..2
 end
@@ -30,6 +37,7 @@ class Main < Gosu::Window
     @holding = false
     @last_pos = []
     @last_piece
+    @all_piece_move=[]
     # Tracking king and rook movements
     @white_king_moved = false
     @black_king_moved = false
@@ -97,6 +105,7 @@ class Main < Gosu::Window
     @white_king_color = "GREEN"
     @black_king_color = "GRAY"
   end
+
   def draw_board
     @columns.each do |column|
       column.each do |row|
@@ -109,10 +118,11 @@ class Main < Gosu::Window
       end
     end
   end
+
   def draw_bg
     Gosu.draw_rect(0,0,WIDTH,HEIGHT,Gosu::Color::WHITE,ZOrder::BACKGROUND,mode=:default)
-  end
-  
+  end 
+
   def draw_pieces
   # Drawing black pieces
     (0...@black_pieces.size).each do |i|
@@ -193,9 +203,37 @@ class Main < Gosu::Window
       when "king"
         move_list = check_king(location)
       end
-      all_move_list << move_list
+      all_move_list += move_list
     end
     return all_move_list
+  end
+
+  def check_all_piece(pieces,locations)
+    move_list = []
+    all_piece = []
+    pieces.each do |piece|
+      location = locations[pieces.index(piece)]
+      #puts move_list
+      move_list = nil
+      case piece
+      when  "pawn"
+        move_list = check_pawn(location)
+      when "rook"
+        move_list = check_rook(location)
+      when "knight"
+        move_list = check_knight(location)
+      when "bishop"
+        move_list = check_bishop(location)
+      when "queen"
+        move_list = check_queen(location)   
+      when "king"
+        move_list = check_king(location)
+      end
+      for i in (0..(move_list.length() -1))
+        all_piece << location
+      end
+    end
+    return all_piece
   end
 
   def check_king(position)
@@ -517,6 +555,7 @@ class Main < Gosu::Window
           king_check()
           @es_passant = can_es_passant?()
           @turn = "black"
+          random_move()
           @holding = false
 
         elsif @turn == "black"
@@ -576,6 +615,8 @@ class Main < Gosu::Window
       @black_locations[@black_locations.index([7,7])] = [4, 7]  # Rook moves next to the king
       @turn = 'white'
     end
+    @holding = false
+    random_move()
   end
   def king_check()
     if @turn == "white"
@@ -631,6 +672,69 @@ class Main < Gosu::Window
       mouse_over_piece()     
     end
   end
+  def evaluate_move
+    white_val = count_material('white')
+    black_val = count_material('black')
+    evaluation = white_val - black_val
+    perspective = (@turn == 'white')? 1 : -1
+    return evaluation*perspective
+  end
+  
+  def count_material(color)
+    material = 0 
+    if color == 'black'
+      @black_pieces.each do |piece|
+        case piece
+        when "pawn"
+          material += PAWN_VALUE
+        when 'rook'
+          material += ROOK_VALUE
+        when 'knight'
+          material += KNIGHT_VALUE
+        when 'bishop'
+          material+= BISHOP_VALUE
+        when 'queen'
+          material+= QUEEN_VALUE
+        end
+      end
+    elsif color=='white'
+      @white_pieces.each do |piece|
+        case piece
+        when "pawn"
+          material += PAWN_VALUE
+        when 'rook'
+          material += ROOK_VALUE
+        when 'knight'
+          material += KNIGHT_VALUE
+        when 'bishop'
+          material+= BISHOP_VALUE
+        when 'queen'
+          material+= QUEEN_VALUE
+        end
+      end
+    end
+    return material
+  end
+
+  def random_move
+    if @turn =='black'
+      @all_pos_move = check_all_option(@black_pieces,@black_locations)
+      ran_index = rand(0..(@all_pos_move.length-1))
+      move = @all_pos_move[ran_index]
+      @all_piece_move = check_all_piece(@black_pieces,@black_locations)
+      piece = @all_piece_move[ran_index]
+      @black_locations[@black_locations.index(piece)] = move
+      capture()
+      king_check()
+      @turn = 'white'
+    end
+  end
+
+  def generate_moves
+    @all_pos_move = check_all_option(@white_pieces,@white_locations) if @turn == 'white'
+    
+  end
+
 end
 
 Main.new.show
