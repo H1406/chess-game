@@ -483,7 +483,11 @@ class Main < Gosu::Window
       end
     end
     if @check
-      Gosu.draw_rect(@white_locations[@white_pieces.index('king')][0]*CELL_DIM,@white_locations[@white_pieces.index('king')][1]*CELL_DIM,CELL_DIM,CELL_DIM,Gosu::Color.rgba(255, 0, 0, 128),ZOrder::MIDDLE)
+      if @turn =='white'
+        Gosu.draw_rect(@white_locations[@white_pieces.index('king')][0]*CELL_DIM,@white_locations[@white_pieces.index('king')][1]*CELL_DIM,CELL_DIM,CELL_DIM,Gosu::Color.rgba(255, 0, 0, 128),ZOrder::MIDDLE) 
+      elsif @turn == 'black'
+        Gosu.draw_rect(@white_locations[@black_pieces.index('king')][0]*CELL_DIM,@black_locations[@black_pieces.index('king')][1]*CELL_DIM,CELL_DIM,CELL_DIM,Gosu::Color.rgba(255, 0, 0, 128),ZOrder::MIDDLE) 
+      end
     end
   end
   def mouse_over_piece()
@@ -494,8 +498,14 @@ class Main < Gosu::Window
       if @turn == "white"
         if @white_locations.include?(mouse_pos)
           piece = @white_pieces[@white_locations.index(mouse_pos)]
-          @pos_move = check_option(piece, mouse_pos)
           @current_piece = @white_locations.index(mouse_pos)
+          @pos_move = check_option(piece, mouse_pos)
+          if @current_piece == @white_pieces.index('king') && can_castle?( "king")
+            @pos_move << [1,0]
+          end
+          if @current_piece == @white_pieces.index('king') && can_castle?( "queen")
+            @pos_move << [5,0]
+          end
           if @white_pieces[@white_locations.index(mouse_pos)] =='pawn' and @es_passant and @last_pos[1] == 6 and y == 4 and (x ==@last_pos[0]+1 or x == @last_pos[0]-1)
             @pos_move << [@last_pos[0],5]
           end
@@ -506,6 +516,12 @@ class Main < Gosu::Window
           piece = @black_pieces[@black_locations.index(mouse_pos)]
           @pos_move = check_option(piece, mouse_pos)
           @current_piece = @black_locations.index(mouse_pos)
+          if @current_piece == @black_pieces.index('king') && can_castle?("king")
+            @pos_move << [1,7]
+          end
+          if @current_piece == @black_pieces.index('king')&& can_castle?( "queen")
+            @pos_move << [5,7]
+          end
           if piece =='pawn' and @es_passant and @last_pos[1] == 1 and y ==3 and (x ==@last_pos[0]+1 or x == @last_pos[0]-1)
             @pos_move << [@last_pos[0],2]
           end
@@ -513,64 +529,61 @@ class Main < Gosu::Window
         end
       end
     elsif @holding == true
-      if @turn == 'white'
-        @turn = 'black'
-        king_check()
-        @turn = 'white'
-      end
-      if @turn == 'black'
-        @turn = 'white'
-        king_check()
-        @turn = 'black'
-      end
-      if @current_piece == @white_pieces.index('king') && mouse_pos == [1,0] && can_castle?( "king")
-        castling_move("king")
-      elsif @current_piece == @white_pieces.index('king') && mouse_pos == [5, 0] && can_castle?( "queen")
-        castling_move("queen")
-      elsif @current_piece == @black_pieces.index('king') && mouse_pos == [1, 7] && can_castle?( "king")
-        castling_move("king")
-      elsif @current_piece == @black_pieces.index('king') && mouse_pos == [5,7] && can_castle?( "queen")
-        castling_move("queen")
-      end
       if @pos_move.include?(mouse_pos)
         if @white_pieces[@current_piece] == 'king' or @black_pieces[@current_piece]=='king'
           @white_king_moved = true if @turn == "white"
           @black_king_moved = true if @turn == "black"
         elsif @white_pieces[@current_piece] == 'rook' or @black_pieces[@current_piece]=='rook'
-          @white_rook_left_moved = true if @turn == "white" and @white_locations[@current_piece] ==[0,0]
-          @black_rook_left_moved = true if @turn == "black"and @black_locations[@current_piece] ==[0,7]
-          @white_rook_right_moved = true if @turn == "white" and @white_locations[@current_piece] ==[7,0]
-          @black_rook_right_moved = true if @turn == "black" and @black_locations[@current_piece] ==[7,7]
+          @white_rook_left_moved = true if @turn == "white"
+          @black_rook_left_moved = true if @turn == "black"
+          @white_rook_right_moved = true if @turn == "white" 
+          @black_rook_right_moved = true if @turn == "black" 
         end
         if @turn == "white"
           if @es_passant and @pos_move.include?([@last_pos[0],5]) and mouse_pos == [@last_pos[0],5]
-            @black_pieces.delete_at(@black_locations.index([mouse_pos[0],mouse_pos[1]-1]))
-            @black_locations.delete([mouse_pos[0],mouse_pos[1]-1])
-            @last_pos = nil
-            @es_passant = false
+            if @black_locations.include?([mouse_pos[0],4])
+              @black_pieces.delete_at(@black_locations.index([mouse_pos[0],4]))
+              @black_locations.delete([mouse_pos[0],4])
+              @capture_sound.play
+              @last_pos = nil
+              @es_passant = false
+            end
           end
           @last_pos = @white_locations[@current_piece]
-          @white_locations[@current_piece] = mouse_pos
-          capture()
-          king_check()
-          @es_passant = can_es_passant?()
-          @turn = "black"
-          random_move()
+          if  @white_pieces[@current_piece] == 'king' and (mouse_pos==[1,0] or mouse_pos==[5,0])
+            castling_move('king') if mouse_pos==[1,0]
+            castling_move('queen') if mouse_pos == [5,0]
+          else
+            @white_locations[@current_piece] = mouse_pos
+            capture()
+            king_check()          
+            @es_passant = can_es_passant?()
+            @turn = "black"
+          end
+          #random_move()
           @holding = false
-
         elsif @turn == "black"
-          if @es_passant and @pos_move.include?([@last_pos[0],3]) and mouse_pos == [@last_pos[0],3]
-            @white_pieces.delete_at(@white_locations.index([mouse_pos[0],mouse_pos[1]+1]))
-            @white_locations.delete([mouse_pos[0],mouse_pos[1]-1])
-            @last_pos = nil
-            @es_passant = false
+          if @es_passant and @pos_move.include?([@last_pos[0],2]) and mouse_pos == [@last_pos[0],2]
+            if @white_locations.include?([mouse_pos[0],mouse_pos[1]+1])
+              @white_pieces.delete_at(@white_locations.index([mouse_pos[0],mouse_pos[1]+1]))
+              @white_locations.delete([mouse_pos[0],mouse_pos[1]+1])
+              @capture_sound.play
+              @last_pos = nil
+              @es_passant = false
+            end
           end
           @last_pos = @black_locations[@current_piece]
-          @black_locations[@current_piece] = mouse_pos
-          capture()
-          king_check()
-          @es_passant = can_es_passant?()
-          @turn = "white"
+          if (mouse_pos == [1,7] or mouse_pos == [5,7]) and @black_pieces[@current_piece] == 'king'
+            castling_move('king') if mouse_pos==[1,7]
+            castling_move('queen') if mouse_pos == [5,7]
+          else
+            @black_locations[@current_piece] = mouse_pos
+            capture()
+            king_check()
+            @es_passant = can_es_passant?()
+            @turn = "white"
+          end
+          #random_move()
           @holding = false  
         end
         @pos_move = nil
@@ -616,14 +629,13 @@ class Main < Gosu::Window
       @turn = 'white'
     end
     @holding = false
-    random_move()
   end
   def king_check()
     if @turn == "white"
       king_index = @black_pieces.index('king')
       king_location = @black_locations[king_index]
       @all_pos_move = check_all_option(@white_pieces,@white_locations)
-      if @all_pos_move.flatten(1).include?(king_location)
+      if @all_pos_move.include?(king_location)
         @check = true
       else @check = false
       end
@@ -631,7 +643,7 @@ class Main < Gosu::Window
       king_index = @white_pieces.index('king')
       king_location = @white_locations[king_index]
       @all_pos_move = check_all_option(@black_pieces,@black_locations)
-      if @all_pos_move.flatten(1).include?(king_location)
+      if @all_pos_move.include?(king_location)
         @check = true
       else 
         @check = false
@@ -717,14 +729,24 @@ class Main < Gosu::Window
   end
 
   def random_move
-    if @turn =='black'
+    if @turn =='black'     
       @all_pos_move = check_all_option(@black_pieces,@black_locations)
       ran_index = rand(0..(@all_pos_move.length-1))
       move = @all_pos_move[ran_index]
       @all_piece_move = check_all_piece(@black_pieces,@black_locations)
-      piece = @all_piece_move[ran_index]
-      @black_locations[@black_locations.index(piece)] = move
-      capture()
+      if @current_piece == @black_pieces.index('king') && can_castle?( "king")
+        @all_pos_move << [1,7]
+      elsif @current_piece == @black_pieces.index('king') && can_castle?( "queen")
+        @all_pos_move << [5,7]
+      end
+      if move == [1,7] or move == [5,7]
+        castling_move('king') if move == [1,7] 
+        castling_move('queen') if move==[5,7]
+      else
+        piece = @all_piece_move[ran_index]
+        @black_locations[@black_locations.index(piece)] = move
+        capture()
+      end
       king_check()
       @turn = 'white'
     end
