@@ -4,11 +4,31 @@ WIDTH = 800
 HEIGHT = 800
 CELL_DIM = 100
 
-PAWN_VALUE = 100
-KNIGHT_VALUE = 300
-BISHOP_VALUE = 300
-ROOK_VALUE =500
-QUEEN_VALUE = 900
+PAWN_VALUE = 10
+KNIGHT_VALUE = 30
+BISHOP_VALUE = 30
+ROOK_VALUE =50
+QUEEN_VALUE = 90
+PAWN_TABLE=[
+  [-100,-100,-100,-100,-100,-100,-100,-100],
+  [-90,-90,-90,-90,-90,-90,-90,-90],
+  [-20,-20,-20,-20,-20,-20,-20,-20],
+  [-20,-20,-20,-40,-40,-20,-20,-20],
+  [-20,-20,-20,-60,-60,-20,-20,-20],
+  [-10,-10,-10,-10,-10,-10,-10,-10],
+  [-5,-5,-5,-5,-5,-5,-5,-5,]
+]
+KNIGHT_TABLE = [
+  [-50, -40, -30, -30, -30, -30, -40, -50],
+  [-40, -20,   0,   0,   0,   0, -20, -40],
+  [-30,   0,  10,  15,  15,  10,   0, -30],
+  [-30,   5,  15,  20,  20,  15,   5, -30],
+  [-30,   0,  15,  20,  20,  15,   0, -30],
+  [-30,   5,  10,  15,  15,  10,   5, -30],
+  [-40, -20,   0,   5,   5,   0, -20, -40],
+  [-50, -40, -30, -30, -30, -30, -40, -50]
+]
+
 
 module ZOrder
   BACKGROUND, MIDDLE, TOP = *0..2
@@ -45,7 +65,9 @@ class Main < Gosu::Window
     @white_rook_right_moved = false
     @black_rook_left_moved = false
     @black_rook_right_moved = false
-
+    @temp_pieces
+    @temp_locations
+    @to_delete = []
     @pos_move = []
     @black = []
     @white = []
@@ -486,7 +508,7 @@ class Main < Gosu::Window
       if @turn =='white'
         Gosu.draw_rect(@white_locations[@white_pieces.index('king')][0]*CELL_DIM,@white_locations[@white_pieces.index('king')][1]*CELL_DIM,CELL_DIM,CELL_DIM,Gosu::Color.rgba(255, 0, 0, 128),ZOrder::MIDDLE) 
       elsif @turn == 'black'
-        Gosu.draw_rect(@white_locations[@black_pieces.index('king')][0]*CELL_DIM,@black_locations[@black_pieces.index('king')][1]*CELL_DIM,CELL_DIM,CELL_DIM,Gosu::Color.rgba(255, 0, 0, 128),ZOrder::MIDDLE) 
+        Gosu.draw_rect(@black_locations[@black_pieces.index('king')][0]*CELL_DIM,@black_locations[@black_pieces.index('king')][1]*CELL_DIM,CELL_DIM,CELL_DIM,Gosu::Color.rgba(255, 0, 0, 128),ZOrder::MIDDLE) 
       end
     end
   end
@@ -508,6 +530,37 @@ class Main < Gosu::Window
           end
           if @white_pieces[@white_locations.index(mouse_pos)] =='pawn' and @es_passant and @last_pos[1] == 6 and y == 4 and (x ==@last_pos[0]+1 or x == @last_pos[0]-1)
             @pos_move << [@last_pos[0],5]
+          end
+          temp_locations = @white_locations[@current_piece]
+          @pos_move.each do |move|
+            @white_locations[@current_piece] = move
+            captured = false
+            if @black_locations.include?(move)
+              temp_capture = move
+              temp_pieces = @black_pieces[@black_locations.index(move)]
+              temp_index = @black_locations.index(move)
+              @black_pieces.delete_at(temp_index)
+              @black_locations.delete_at(temp_index)           
+              captured = true
+            end
+            @turn ='black'
+            king_check()
+            if @check == true
+              @to_delete << move             
+              @check = false
+            end
+            @white_locations[@current_piece]=temp_locations
+            if captured == true
+              @black_locations << move
+              @black_pieces << temp_pieces
+            end
+            @turn = 'white' 
+          end
+          if @to_delete
+            @to_delete.each do |move|
+              @pos_move.delete(move)
+            end
+            @to_delete = []
           end
           @holding = true
         end
@@ -754,7 +807,41 @@ class Main < Gosu::Window
 
   def generate_moves
     @all_pos_move = check_all_option(@white_pieces,@white_locations) if @turn == 'white'
-    
+    @all_piece_move = check_all_piece(@white_pieces,@white_locations) if @turn == 'white'
+    @all_pos_move = check_all_option(@black_pieces,@white_locations) if @turn =='black'
+    @all_piece_move = check_all_piece(@black_pieces,@white_locations) if @turn =='black'
+    @evaluation_board = evaluate_move()
+    move = search_best_move(@evaluation_board,3,false,-Float::INFINITY,Float::INFINITY)
+  end
+
+  def search_best_move(node,depth, isMaximizer, alpha,beta)
+    if depth == 0
+      return node
+    end
+    if isMaximizer 
+      best_val = -Float::INFINITY
+      @evaluation_board.each do |move|
+        move = evaluate_move
+        value = search_best_move(move,depth-1,false,alpha,beta)
+        best_val = max(best_val,value)
+        alpha = max(alpha,best_val)
+        if beta <= alpha
+          break
+        end
+      end
+      return best_val
+    else
+      best_val = Float::INFINITY
+      @evaluation_board.each do |move|
+        value = search_best_move(move,depth-1,true,alpha,beta)
+        best_val = min(best_val,value)
+        beta = min(best_val,beta)
+        if beta <= alpha
+          break
+        end
+      end
+      return best_val
+    end
   end
 
 end
