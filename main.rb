@@ -1,6 +1,6 @@
 require 'gosu'
 
-WIDTH = 800
+WIDTH = 1000
 HEIGHT = 800
 CELL_DIM = 100
 
@@ -10,25 +10,65 @@ BISHOP_VALUE = 30
 ROOK_VALUE =50
 QUEEN_VALUE = 90
 PAWN_TABLE=[
-  [-100,-100,-100,-100,-100,-100,-100,-100],
-  [-90,-90,-90,-90,-90,-90,-90,-90],
-  [-20,-20,-20,-20,-20,-20,-20,-20],
-  [-20,-20,-20,-40,-40,-20,-20,-20],
-  [-20,-20,-20,-60,-60,-20,-20,-20],
-  [-10,-10,-10,-10,-10,-10,-10,-10],
-  [-5,-5,-5,-5,-5,-5,-5,-5,]
+  [100,100,100,100,100,100,100,100],
+  [90,90,90,90,90,90,90,90],
+  [30,30,10,30,30,30,30,30],
+  [10,10,40,60,60,40,10,10],
+  [10,10,40,60,60,40,10,10],
+  [30,30,30,50,50,30,30,30],
+  [90,90,90,90,90,90,90,90],
+  [100,100,100,100,100,100,100,100]
 ]
 KNIGHT_TABLE = [
-  [-50, -40, -30, -30, -30, -30, -40, -50],
-  [-40, -20,   0,   0,   0,   0, -20, -40],
-  [-30,   0,  10,  15,  15,  10,   0, -30],
-  [-30,   5,  15,  20,  20,  15,   5, -30],
-  [-30,   0,  15,  20,  20,  15,   0, -30],
-  [-30,   5,  10,  15,  15,  10,   5, -30],
-  [-40, -20,   0,   5,   5,   0, -20, -40],
-  [-50, -40, -30, -30, -30, -30, -40, -50]
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 40, 40, 0, 0, 0],
+  [0, 0, 60, 0, 0, 60, 0, 0],
+  [0, 0, 0, 50, 50, 0, 0, 0],
+  [0, 0, 0, 50, 50, 0, 0, 0],
+  [0, 0, 60, 0, 0, 60, 0, 0],
+  [0, 0, 0, 40, 40, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0]
 ]
-
+BISHOP_TABLE = [
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 60, 0, 30, 30, 0, 60, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 60, 0, 30, 30, 0, 60, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0]
+]
+ROOK_TABLE = [
+  [0, 0, 0, 70, 70, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 70, 70, 0, 0, 0]
+]
+QUEEN_TABLE = [
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0]
+]
+KING_TABLE = [
+  [0, 0, 100, 0, 0, 0, 100, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 100, 0, 0, 0, 100, 0]
+]
 
 module ZOrder
   BACKGROUND, MIDDLE, TOP = *0..2
@@ -47,6 +87,7 @@ class Main < Gosu::Window
   def initialize  
     super WIDTH,HEIGHT
     self.caption = "Chess Game"
+    @font = Gosu::Font.new(40)
     @capture_sound = Gosu::Sample.new("./sounds/capture.mp3")
     column_index = 0 
     @check = false
@@ -58,6 +99,11 @@ class Main < Gosu::Window
     @last_pos = []
     @last_piece
     @all_piece_move=[]
+    @last_white_locations=[]
+    @last_black_locations=[]
+    @last_white_pieces = []
+    @last_black_pieces = []
+    @check_mate = false
     # Tracking king and rook movements
     @white_king_moved = false
     @black_king_moved = false
@@ -143,6 +189,10 @@ class Main < Gosu::Window
 
   def draw_bg
     Gosu.draw_rect(0,0,WIDTH,HEIGHT,Gosu::Color::WHITE,ZOrder::BACKGROUND,mode=:default)
+    Gosu.draw_rect(850,50,100,50,Gosu::Color::BLACK,ZOrder::BACKGROUND,mode=:default)
+    @font.draw_text("Reset",855,55,ZOrder::MIDDLE,1.0,1.0,Gosu::Color::WHITE,mode=:default)
+    Gosu.draw_rect(850,150,100,50,Gosu::Color::BLACK,ZOrder::BACKGROUND,mode=:default)
+    @font.draw_text("Undo",855,155,ZOrder::MIDDLE,1.0,1.0,Gosu::Color::WHITE,mode=:default)
   end 
 
   def draw_pieces
@@ -288,7 +338,7 @@ class Main < Gosu::Window
       if !enemy_list.include?(target1) and !friend_list.include?(target1) and target1[1] <6
         move_list << target1
       end
-      if !enemy_list.include?(target2) and !friend_list.include?(target2) and position[1]==1
+      if !enemy_list.include?(target2) and !friend_list.include?(target2) and position[1]==1 and !friend_list.include?(target1)
         move_list << target2
       end
       if enemy_list.include?(target_right)
@@ -307,7 +357,7 @@ class Main < Gosu::Window
       if !enemy_list.include?(target1) and !friend_list.include?(target1) and target1[1] > 1
         move_list << target1
       end
-      if !enemy_list.include?(target2) and !friend_list.include?(target2) and position[1]==6
+      if !enemy_list.include?(target2) and !friend_list.include?(target2) and position[1]==6 and !friend_list.include?(target1)
         move_list << target2
       end
       if enemy_list.include?(target_right)
@@ -513,6 +563,7 @@ class Main < Gosu::Window
     end
   end
   def mouse_over_piece()
+    if !@check_mate
     x = (mouse_x / CELL_DIM).floor
     y = (mouse_y / CELL_DIM).floor
     mouse_pos = [x, y] 
@@ -531,37 +582,7 @@ class Main < Gosu::Window
           if @white_pieces[@white_locations.index(mouse_pos)] =='pawn' and @es_passant and @last_pos[1] == 6 and y == 4 and (x ==@last_pos[0]+1 or x == @last_pos[0]-1)
             @pos_move << [@last_pos[0],5]
           end
-          temp_locations = @white_locations[@current_piece]
-          @pos_move.each do |move|
-            @white_locations[@current_piece] = move
-            captured = false
-            if @black_locations.include?(move)
-              temp_capture = move
-              temp_pieces = @black_pieces[@black_locations.index(move)]
-              temp_index = @black_locations.index(move)
-              @black_pieces.delete_at(temp_index)
-              @black_locations.delete_at(temp_index)           
-              captured = true
-            end
-            @turn ='black'
-            king_check()
-            if @check == true
-              @to_delete << move             
-              @check = false
-            end
-            @white_locations[@current_piece]=temp_locations
-            if captured == true
-              @black_locations << move
-              @black_pieces << temp_pieces
-            end
-            @turn = 'white' 
-          end
-          if @to_delete
-            @to_delete.each do |move|
-              @pos_move.delete(move)
-            end
-            @to_delete = []
-          end
+          check_valid_move(@pos_move)
           @holding = true
         end
       elsif @turn == "black"
@@ -578,10 +599,15 @@ class Main < Gosu::Window
           if piece =='pawn' and @es_passant and @last_pos[1] == 1 and y ==3 and (x ==@last_pos[0]+1 or x == @last_pos[0]-1)
             @pos_move << [@last_pos[0],2]
           end
+          check_valid_move(@pos_move)
           @holding = true 
         end
       end
     elsif @holding == true
+      @last_black_locations << @black_locations.dup if @turn == 'black'
+      @last_black_pieces << @black_pieces.dup if @turn =='black'
+      @last_white_locations << @white_locations.dup if @turn =='white'
+      @last_white_pieces << @white_pieces.dup if @turn =='white'
       if @pos_move.include?(mouse_pos)
         if @white_pieces[@current_piece] == 'king' or @black_pieces[@current_piece]=='king'
           @white_king_moved = true if @turn == "white"
@@ -603,6 +629,7 @@ class Main < Gosu::Window
             end
           end
           @last_pos = @white_locations[@current_piece]
+          
           if  @white_pieces[@current_piece] == 'king' and (mouse_pos==[1,0] or mouse_pos==[5,0])
             castling_move('king') if mouse_pos==[1,0]
             castling_move('queen') if mouse_pos == [5,0]
@@ -625,7 +652,7 @@ class Main < Gosu::Window
               @es_passant = false
             end
           end
-          @last_pos = @black_locations[@current_piece]
+          @last_pos = @black_locations[@current_piece]         
           if (mouse_pos == [1,7] or mouse_pos == [5,7]) and @black_pieces[@current_piece] == 'king'
             castling_move('king') if mouse_pos==[1,7]
             castling_move('queen') if mouse_pos == [5,7]
@@ -647,6 +674,7 @@ class Main < Gosu::Window
         @es_passant = false
         @last_pos = nil
       end
+    end
     end
   end
   def can_es_passant?
@@ -731,10 +759,117 @@ class Main < Gosu::Window
     end
     return true
   end
+  def undo_move()
+    
+    if @last_white_locations.length > 0
+    @white_pieces = @last_white_pieces[-1].dup
+    @white_locations = @last_white_locations[-1].dup
+    @last_white_locations.delete_at(-1)
+    @last_white_pieces.delete_at(-1)
+    if @last_white_locations.length ==0
+      @turn = 'white'
+    end
+    end
+    if @last_black_locations.length > 0 
+    @black_locations = @last_black_locations[-1].dup
+    @black_pieces = @last_black_pieces[-1].dup
+    @last_black_locations.delete_at(-1)
+    @last_black_pieces.delete_at(-1)
+    end
+    if @last_white_locations.length > @last_black_locations.length
+      @turn == 'black'
+    end
+  end
   def button_down(id)
     case id
     when Gosu::MsLeft
+      if mouse_x >= 850 and mouse_x <= 950 and mouse_y > 50 and mouse_y < 100
+        @white_pieces = ["rook","knight","bishop","king","queen","bishop","knight","rook","pawn","pawn","pawn","pawn","pawn","pawn","pawn","pawn"]
+        @white_locations = [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0],[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1]]
+        @black_pieces = ["rook","knight","bishop","king","queen","bishop","knight","rook","pawn","pawn","pawn","pawn","pawn","pawn","pawn","pawn"]
+        @black_locations =  [[0, 7], [1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [6, 7], [7, 7],[0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6], [7, 6]]
+        @turn = 'white'
+        @check_mate = false
+        @check = false
+        @white_king_moved = false
+        @black_king_moved = false
+        @white_rook_left_moved = false
+        @white_rook_right_moved = false
+        @black_rook_left_moved = false
+        @black_rook_right_moved = false     
+      end
+      if mouse_x >= 850 and mouse_x <= 950 and mouse_y > 150 and mouse_y < 200
+        undo_move()
+      end
       mouse_over_piece()     
+    end
+  end
+  def check_valid_move(moves)
+    if @turn == 'white'
+      temp_locations = @white_locations[@current_piece].dup
+      moves.each do |move|
+            @white_locations[@current_piece] = move
+            captured = false
+        if @black_locations.include?(move)
+              temp_capture = move
+              temp_pieces = @black_pieces[@black_locations.index(move)]
+              temp_index = @black_locations.index(move)
+              @black_pieces.delete_at(temp_index)
+              @black_locations.delete_at(temp_index)           
+              captured = true
+        end
+            @turn ='black'
+            king_check()
+        if @check == true
+              @to_delete << move             
+              @check = false
+        end
+            @white_locations[@current_piece]=temp_locations
+        if captured == true
+              @black_locations << move
+              @black_pieces << temp_pieces
+        end
+            @turn = 'white' 
+      end
+      if @to_delete
+            @to_delete.each do |move|
+              moves.delete(move)
+            end
+            @to_delete = []
+      end
+      elsif @turn =='black'
+              temp_locations = @black_locations[@current_piece]
+          moves.each do |move|
+            @black_locations[@current_piece] = move
+            captured = false
+        if @white_locations.include?(move)
+              temp_capture = move
+              temp_pieces = @white_pieces[@white_locations.index(move)]
+              temp_index = @white_locations.index(move)
+              @white_pieces.delete_at(temp_index)
+              @white_locations.delete_at(temp_index)           
+              captured = true
+        end
+            @turn ='white'
+            king_check()
+        if @check == true
+              @to_delete << move             
+              @check = false
+        end
+            @black_locations[@current_piece]=temp_locations
+            if captured == true
+              @white_locations << move
+              @white_pieces << temp_pieces
+            end
+            @turn = 'black' 
+          end
+          if @to_delete
+            @to_delete.each do |move|
+              moves.delete(move)
+            end
+            @to_delete = []
+           end
+          end  
     end
   end
   def evaluate_move
@@ -784,25 +919,25 @@ class Main < Gosu::Window
   def random_move
     if @turn =='black'     
       @all_pos_move = check_all_option(@black_pieces,@black_locations)
-      ran_index = rand(0..(@all_pos_move.length-1))
-      move = @all_pos_move[ran_index]
+      #ran_index = rand(0..(@all_pos_move.length-1))
       @all_piece_move = check_all_piece(@black_pieces,@black_locations)
-      if @current_piece == @black_pieces.index('king') && can_castle?( "king")
+      if can_castle?( "king")
         @all_pos_move << [1,7]
-      elsif @current_piece == @black_pieces.index('king') && can_castle?( "queen")
+        @all_piece_move << 'king'
+      elsif  can_castle?( "queen")
         @all_pos_move << [5,7]
+        @all_piece_move << 'king'
       end
-      if move == [1,7] or move == [5,7]
-        castling_move('king') if move == [1,7] 
-        castling_move('queen') if move==[5,7]
-      else
-        piece = @all_piece_move[ran_index]
-        @black_locations[@black_locations.index(piece)] = move
+      @all_pos_move.each do |move|
+          temp_locations = @black_locations.dup
+          temp_pieces = @black_pieces.dup
+        
+        #@black_locations[@black_locations.index(piece)] = move
         capture()
       end
       king_check()
       @turn = 'white'
-    end
+    
   end
 
   def generate_moves
