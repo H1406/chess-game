@@ -93,6 +93,7 @@ class Main < Gosu::Window
     @check = false
     @turn = "white"
     @es_passant = false
+    @max_piece 
     dark = true
     @winner = ''
     @holding = false
@@ -582,7 +583,7 @@ class Main < Gosu::Window
           if @white_pieces[@white_locations.index(mouse_pos)] =='pawn' and @es_passant and @last_pos[1] == 6 and y == 4 and (x ==@last_pos[0]+1 or x == @last_pos[0]-1)
             @pos_move << [@last_pos[0],5]
           end
-          check_valid_move(@pos_move)
+          check_valid_moves(@pos_move)
           @holding = true
         end
       elsif @turn == "black"
@@ -599,7 +600,7 @@ class Main < Gosu::Window
           if piece =='pawn' and @es_passant and @last_pos[1] == 1 and y ==3 and (x ==@last_pos[0]+1 or x == @last_pos[0]-1)
             @pos_move << [@last_pos[0],2]
           end
-          check_valid_move(@pos_move)
+          check_valid_moves(@pos_move)
           @holding = true 
         end
       end
@@ -640,7 +641,7 @@ class Main < Gosu::Window
             @es_passant = can_es_passant?()
             @turn = "black"
           end
-          #random_move()
+          random_move()
           @holding = false
         elsif @turn == "black"
           if @es_passant and @pos_move.include?([@last_pos[0],2]) and mouse_pos == [@last_pos[0],2]
@@ -759,22 +760,21 @@ class Main < Gosu::Window
     end
     return true
   end
-  def undo_move()
-    
+  def undo_move()  
     if @last_white_locations.length > 0
-    @white_pieces = @last_white_pieces[-1].dup
-    @white_locations = @last_white_locations[-1].dup
-    @last_white_locations.delete_at(-1)
-    @last_white_pieces.delete_at(-1)
-    if @last_white_locations.length ==0
-      @turn = 'white'
-    end
+      @white_pieces = @last_white_pieces[-1].dup
+      @white_locations = @last_white_locations[-1].dup
+      @last_white_locations.delete_at(-1)
+      @last_white_pieces.delete_at(-1)
+      if @last_white_locations.length ==0
+        @turn = 'white'
+      end
     end
     if @last_black_locations.length > 0 
-    @black_locations = @last_black_locations[-1].dup
-    @black_pieces = @last_black_pieces[-1].dup
-    @last_black_locations.delete_at(-1)
-    @last_black_pieces.delete_at(-1)
+      @black_locations = @last_black_locations[-1].dup
+      @black_pieces = @last_black_pieces[-1].dup
+      @last_black_locations.delete_at(-1)
+      @last_black_pieces.delete_at(-1)
     end
     if @last_white_locations.length > @last_black_locations.length
       @turn == 'black'
@@ -804,74 +804,74 @@ class Main < Gosu::Window
       mouse_over_piece()     
     end
   end
-  def check_valid_move(moves)
+  def check_valid_moves(moves)
     if @turn == 'white'
       temp_locations = @white_locations[@current_piece].dup
       moves.each do |move|
-            @white_locations[@current_piece] = move
-            captured = false
+        @white_locations[@current_piece] = move
+        captured = false
         if @black_locations.include?(move)
-              temp_capture = move
-              temp_pieces = @black_pieces[@black_locations.index(move)]
-              temp_index = @black_locations.index(move)
-              @black_pieces.delete_at(temp_index)
-              @black_locations.delete_at(temp_index)           
-              captured = true
+          temp_capture = move
+          temp_pieces = @black_pieces[@black_locations.index(move)]
+          temp_index = @black_locations.index(move)
+          @black_pieces.delete_at(temp_index)
+          @black_locations.delete_at(temp_index)           
+          captured = true
         end
-            @turn ='black'
-            king_check()
+        @turn = 'black'
+        king_check()
         if @check == true
-              @to_delete << move             
-              @check = false
+          @to_delete << move             
+          @check = false
         end
-            @white_locations[@current_piece]=temp_locations
+        @white_locations[@current_piece] = temp_locations
         if captured == true
-              @black_locations << move
-              @black_pieces << temp_pieces
+          @black_locations << move
+          @black_pieces << temp_pieces
         end
-            @turn = 'white' 
+        @turn = 'white' 
       end
       if @to_delete
-            @to_delete.each do |move|
-              moves.delete(move)
-            end
-            @to_delete = []
+        @to_delete.each do |move|
+          moves.delete(move)
+        end
+        @to_delete = []
       end
-      elsif @turn =='black'
-              temp_locations = @black_locations[@current_piece]
-          moves.each do |move|
-            @black_locations[@current_piece] = move
-            captured = false
+    elsif @turn == 'black'
+      temp_locations = @black_locations[@current_piece]
+      moves.each do |move|
+        @black_locations[@current_piece] = move
+        captured = false
         if @white_locations.include?(move)
-              temp_capture = move
-              temp_pieces = @white_pieces[@white_locations.index(move)]
-              temp_index = @white_locations.index(move)
-              @white_pieces.delete_at(temp_index)
-              @white_locations.delete_at(temp_index)           
-              captured = true
+          temp_capture = move
+          temp_pieces = @white_pieces[@white_locations.index(move)]
+          temp_index = @white_locations.index(move)
+          @white_pieces.delete_at(temp_index)
+          @white_locations.delete_at(temp_index)           
+          captured = true
         end
-            @turn ='white'
-            king_check()
+        @turn = 'white'
+        king_check()
         if @check == true
-              @to_delete << move             
-              @check = false
+          @to_delete << move             
+          @check = false
         end
-            @black_locations[@current_piece]=temp_locations
-            if captured == true
-              @white_locations << move
-              @white_pieces << temp_pieces
-            end
-            @turn = 'black' 
-          end
-          if @to_delete
-            @to_delete.each do |move|
-              moves.delete(move)
-            end
-            @to_delete = []
-           end
-          end  
+        @black_locations[@current_piece] = temp_locations
+        if captured == true
+          @white_locations << move
+          @white_pieces << temp_pieces
+        end
+        @turn = 'black' 
+      end
+      if @to_delete
+        @to_delete.each do |move|
+          moves.delete(move)
+        end
+      end
+      @to_delete = []
     end
   end
+  
   def evaluate_move
     white_val = count_material('white')
     black_val = count_material('black')
@@ -917,27 +917,61 @@ class Main < Gosu::Window
   end
 
   def random_move
+    max_move = []
+    
+    max_score = 0
     if @turn =='black'     
       @all_pos_move = check_all_option(@black_pieces,@black_locations)
-      #ran_index = rand(0..(@all_pos_move.length-1))
       @all_piece_move = check_all_piece(@black_pieces,@black_locations)
-      if can_castle?( "king")
-        @all_pos_move << [1,7]
-        @all_piece_move << 'king'
-      elsif  can_castle?( "queen")
-        @all_pos_move << [5,7]
-        @all_piece_move << 'king'
+      for i in (0..(@all_pos_move.length-1))
+        temp_locations = @black_locations.dup
+        temp_pieces = @black_pieces.dup
+        @current_piece = @black_locations.index(@all_piece_move[i])
+        #check_valid_move(@all_pos_move[i])
       end
-      @all_pos_move.each do |move|
-          temp_locations = @black_locations.dup
-          temp_pieces = @black_pieces.dup
-        
-        #@black_locations[@black_locations.index(piece)] = move
+      # if can_castle?( "king")
+      #   @all_pos_move << [1,7]
+      #   @all_piece_move << 'king'
+      # elsif  can_castle?( "queen")
+      #   @all_pos_move << [5,7]
+      #   @all_piece_move << 'king'
+      # end
+      @to_delete.each do |del_move|
+        @all_piece_move.delete_at(@all_pos_move.index(del_move))
+        @all_pos_move.delete(del_move)
+      end
+      for i in (0..(@all_pos_move.length-1))
+        @current_piece = @black_locations.index(@all_piece_move[i])
+        #puts @current_piece
+        move = @all_pos_move[i].dup
+        temp_black_locations = @black_locations.dup
+        temp_white_locations = @white_locations.dup
+        temp_black_pieces = @black_pieces.dup
+        temp_white_pieces = @white_pieces.dup
+        @black_locations[@current_piece] = move
         capture()
+        score = evaluate_move()
+        if score > max_score
+          max_score = score
+          max_move = move
+          @max_piece = @current_piece.dup
+        end
+        @black_locations = temp_black_locations
+        @black_pieces = temp_black_pieces
+        @white_pieces = temp_white_pieces
+        @white_locations = temp_white_locations
       end
+      if @max_piece
+        @black_locations[@max_piece] = max_move
+        @max_piece = nil
+      else
+        rand_ind = rand(0..(@all_pos_move.length-1))
+        @black_locations[@black_locations.index(@all_piece_move[rand_ind])] = @all_pos_move[rand_ind]
+      end
+      capture()
       king_check()
       @turn = 'white'
-    
+    end
   end
 
   def generate_moves
@@ -978,7 +1012,57 @@ class Main < Gosu::Window
       return best_val
     end
   end
-
+  def check_valid_move(move)
+    if @turn == 'white'
+      temp_locations = @white_locations[@current_piece].dup
+      @white_locations[@current_piece] = move
+      captured = false
+      if @black_locations.include?(move)
+        temp_capture = move
+        emp_pieces = @black_pieces[@black_locations.index(move)]
+        temp_index = @black_locations.index(move)
+        @black_pieces.delete_at(temp_index)
+        @black_locations.delete_at(temp_index)           
+        captured = true
+      end
+      @turn ='black'
+      king_check()
+      if @check == true
+        @to_delete << move             
+        @check = false
+      end
+        @white_locations[@current_piece]=temp_locations
+      if captured == true
+        @black_locations << move
+        @black_pieces << temp_pieces
+      end
+        @turn = 'white'      
+    elsif @turn =='black'
+        temp_locations = @black_locations[@current_piece]
+        @black_locations[@current_piece] = move
+        captured = false
+        if @white_locations.include?(move)
+          temp_capture = move
+          temp_pieces = @white_pieces[@white_locations.index(move)]
+          temp_index = @white_locations.index(move)
+          @white_pieces.delete_at(temp_index)
+          @white_locations.delete_at(temp_index)           
+          captured = true
+        end
+        @turn ='white'
+        king_check()
+        if @check == true
+          @to_delete << move             
+          @check = false
+        end
+        @black_locations[@current_piece]=temp_locations
+        if captured == true
+          @white_locations << move
+          @white_pieces << temp_pieces
+        end
+        @turn = 'black'  
+    end
+  end
 end
 
 Main.new.show
