@@ -1,5 +1,5 @@
 require 'gosu'
- DEPTH = 2
+DEPTH = 3
 WIDTH = 1000
 HEIGHT = 800
 CELL_DIM = 100
@@ -1068,7 +1068,11 @@ class Main < Gosu::Window
         piece_list=[]
         move_list = generate_moves
         piece_list = generate_pieces
-        value = search_best_move(move_list,depth-1,false,piece_list,alpha,beta)
+        if @check
+          value = - Float::INFINITY
+        else
+          value = search_best_move(move_list,depth-1,false,piece_list,alpha,beta)
+        end
         if value > max_score
           max_score = value
           @next_move_w = move
@@ -1095,7 +1099,11 @@ class Main < Gosu::Window
         piece_list=[]
         move_list = generate_moves
         piece_list = generate_pieces
-        value = search_best_move(move_list,depth-1,true,piece_list,alpha,beta)
+        if @check
+          value = Float::INFINITY
+        else
+          value = search_best_move(move_list,depth-1,true,piece_list,alpha,beta)
+        end
         puts "value: #{value}"
         if value < min_score
           min_score= value
@@ -1121,11 +1129,6 @@ class Main < Gosu::Window
   def make_move(move,piece)
     if @turn == 'white'
       id = @white_locations.index(piece)
-      if id == nil
-        puts piece
-        puts @turn 
-        puts move
-      end
       @last_white_locations << @white_locations.dup
       @last_white_pieces << @white_pieces.dup
       @last_black_locations << @black_locations.dup
@@ -1143,11 +1146,13 @@ class Main < Gosu::Window
       else
         @white_locations[id] = move
         if @black_locations.include?(move)
-          @black_pieces.delete_at(@black_locations.index(move))
-          @black_locations.delete(move)
-          
+          if @black_pieces[@black_locations.index(move)] != 'king'
+            @black_pieces.delete_at(@black_locations.index(move))
+            @black_locations.delete(move)
+          end
         end
       end
+      @turn ='black'
       king_check()
       #@es_passant = can_es_passant?(piece)
       @turn = 'black'
@@ -1157,23 +1162,26 @@ class Main < Gosu::Window
       @last_white_locations << @white_locations.dup
       @last_white_pieces << @white_pieces.dup
       id = @black_locations.index(piece)
-      # if @black_pieces[id] == 'rook'
-      #   @black_rook_left_moved = true if piece ==[0,7]
-      #   @black_rook_right_moved = true if piece ==[7,7]
-      # end
-      # if @black_pieces[id] == 'king'
-      #   @black_king_moved = true
-      # end
-      # if piece == @black_locations[@black_pieces.index('king')] and (move == [1,7] or move == [5,7])
-      #   castling_move('king') if move ==[1,7]
-      #   castling_move('queen') if move == [5,7]
-      # else
-      @black_locations[id] = move
-      if @white_locations.include?(move)
-        @white_pieces.delete_at(@white_locations.index(move))
-        @white_locations.delete(move)
+        if @black_pieces[id] == 'rook'
+          @black_rook_left_moved = true if piece ==[0,7]
+          @black_rook_right_moved = true if piece ==[7,7]
+        end
+        if @black_pieces[id] == 'king'
+          @black_king_moved = true
+        end
+        if piece == @black_locations[@black_pieces.index('king')] and (move == [1,7] or move == [5,7])
+          castling_move('king') if move ==[1,7]
+          castling_move('queen') if move == [5,7]
+        else
+        @black_locations[id] = move
+        if @white_locations.include?(move)
+          if @white_pieces[@white_locations.index(move)] != 'king'
+          @white_pieces.delete_at(@white_locations.index(move))
+          @white_locations.delete(move)
+          end
+        end
       end
-      # end
+      @turn ='white'
       king_check()
       #@es_passant = can_es_passant?(piece)
       @turn = 'white'
