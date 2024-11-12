@@ -1,5 +1,5 @@
 require 'gosu'
-DEPTH = 3
+DEPTH = 2
 WIDTH = 1000
 HEIGHT = 800
 CELL_DIM = 100
@@ -183,7 +183,6 @@ class Main < Gosu::Window
     @white_king_color = "GREEN"
     @black_king_color = "GRAY"
   end
-
   def draw_board
     @columns.each do |column|
       column.each do |row|
@@ -247,11 +246,11 @@ class Main < Gosu::Window
     draw_pieces
     draw_pos_move
     if @check_mate 
-      Gosu.draw_rect(850,250,105,50,Gosu::Color::BLACK,ZOrder::BACKGROUND,mode=:default)
-      @font.draw_text("OVER",855,255,ZOrder::MIDDLE,1.0,1.0,Gosu::Color::WHITE,mode=:default)
+      # Gosu.draw_rect(850,250,105,50,Gosu::Color::BLACK,ZOrder::BACKGROUND,mode=:default)
+      @font.draw_text("OVER",855,255,ZOrder::MIDDLE,1.0,1.0,Gosu::Color::RED,mode=:default)
     elsif @stale_mate
-      Gosu.draw_rect(850,250,105,50,Gosu::Color::BLACK,ZOrder::BACKGROUND,mode=:default)
-      @font.draw_text("DRAW",865,255,ZOrder::MIDDLE,1.0,1.0,Gosu::Color::WHITE,mode=:default)
+      # Gosu.draw_rect(850,250,110,50,Gosu::Color::BLACK,ZOrder::BACKGROUND,mode=:default)
+      @font.draw_text("DRAW",855,255,ZOrder::MIDDLE,1.0,1.0,Gosu::Color::RED,mode=:default)
     end
   end
 
@@ -580,6 +579,50 @@ class Main < Gosu::Window
       end
     end
   end
+  def check_mate()
+    if @turn == 'white'
+      all_pos_move = check_all_option(@black_pieces,@black_locations)
+      all_piece = check_all_piece(@black_pieces,@black_locations)
+      deletes = []
+      for i in (0...(all_pos_move.length))
+        @turn = 'black'
+        make_move(all_pos_move[i],all_piece[i])
+        if @check
+          deletes << i
+          @check = false
+        end
+        undo_move()
+        @turn ='black'
+      end
+      deletes.each do |i|
+        all_pos_move.delete_at(i)
+      end
+      if all_pos_move.length ==0
+        return true
+      end
+    else
+      all_pos_move = check_all_option(@white_pieces,@white_locations)
+      all_piece = check_all_piece(@white_pieces,@white_locations)
+      deletes = []
+      for i in (0...(all_pos_move.length))
+        @turn = 'white'
+        make_move(all_pos_move[i],all_piece[i])
+        if @check
+          deletes << i
+          @check = false
+        end
+        undo_move()
+        @turn ='white'
+      end
+      deletes.each do |i|
+        all_pos_move.delete_at(i)
+      end
+      if all_pos_move.length ==0
+        return true
+      end
+    end
+    return false
+  end
   def make_move_p()
     x = (mouse_x / CELL_DIM).floor
     y = (mouse_y / CELL_DIM).floor
@@ -600,11 +643,7 @@ class Main < Gosu::Window
             @pos_move << [@last_pos[0],5]
           end
           @pos_move = check_valid_moves(@pos_move)
-          if @pos_move == nil and @check
-            @check_mate = true
-          elsif @pos_move == nil and !@check
-            @stale_mate = true
-          else
+          if @pos_move
             @holding = true
           end
         end
@@ -623,20 +662,16 @@ class Main < Gosu::Window
             @pos_move << [@last_pos[0],2]
           end
           @pos_move = check_valid_moves(@pos_move)
-          if @pos_move == nil and @check
-            @check_mate = true
-          elsif @pos_move == nil and !@check
-            @stale_mate = true
-          else
+          if @pos_move 
             @holding = true
           end
         end
       end
     elsif @holding == true
-      @last_black_locations << @black_locations.dup if @turn == 'black'
-      @last_black_pieces << @black_pieces.dup if @turn =='black'
-      @last_white_locations << @white_locations.dup if @turn =='white'
-      @last_white_pieces << @white_pieces.dup if @turn =='white'
+      @last_black_locations << @black_locations.dup
+      @last_black_pieces << @black_pieces.dup 
+      @last_white_locations << @white_locations.dup 
+      @last_white_pieces << @white_pieces.dup 
       if @pos_move.include?(mouse_pos)
         if @white_pieces[@current_piece] == 'king' or @black_pieces[@current_piece]=='king'
           @white_king_moved = true if @turn == "white"
@@ -809,23 +844,26 @@ class Main < Gosu::Window
       @turn ='white' if @turn =='black'
     end
   end
+  def reset()
+    @white_pieces = ["rook","knight","bishop","king","queen","bishop","knight","rook","pawn","pawn","pawn","pawn","pawn","pawn","pawn","pawn"]
+    @white_locations = [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0],[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1]]
+    @black_pieces = ["rook","knight","bishop","king","queen","bishop","knight","rook","pawn","pawn","pawn","pawn","pawn","pawn","pawn","pawn"]
+    @black_locations =  [[0, 7], [1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [6, 7], [7, 7],[0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6], [7, 6]]
+    @turn = 'white'
+    @check_mate = false
+    @check = false
+    @white_king_moved = false
+    @black_king_moved = false
+    @white_rook_left_moved = false
+    @white_rook_right_moved = false
+    @black_rook_left_moved = false
+    @black_rook_right_moved = false
+  end
   def button_down(id)
     case id
     when Gosu::MsLeft
       if mouse_x >= 850 and mouse_x <= 950 and mouse_y > 50 and mouse_y < 100
-        @white_pieces = ["rook","knight","bishop","king","queen","bishop","knight","rook","pawn","pawn","pawn","pawn","pawn","pawn","pawn","pawn"]
-        @white_locations = [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0],[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1]]
-        @black_pieces = ["rook","knight","bishop","king","queen","bishop","knight","rook","pawn","pawn","pawn","pawn","pawn","pawn","pawn","pawn"]
-        @black_locations =  [[0, 7], [1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [6, 7], [7, 7],[0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6], [7, 6]]
-        @turn = 'white'
-        @check_mate = false
-        @check = false
-        @white_king_moved = false
-        @black_king_moved = false
-        @white_rook_left_moved = false
-        @white_rook_right_moved = false
-        @black_rook_left_moved = false
-        @black_rook_right_moved = false     
+        reset()
       end
       if mouse_x >= 850 and mouse_x <= 950 and mouse_y > 150 and mouse_y < 200
         undo_move()
@@ -1049,17 +1087,15 @@ class Main < Gosu::Window
   end
   def search_best_move(nodes,depth, isMaximizer,pieces,alpha,beta)
     if depth == 0
-      @turn = 'black' if @turn =='white'
-      @turn ='white' if @turn =='black'
       if @check
         return -Float::INFINITY if @turn == 'white'
         return Float::INFINITY if @turn == 'black'
       end
-      return evaluate_move()
+      return evaluate_move(@turn)
     end
     if isMaximizer 
       max_score = -Float::INFINITY
-      for i in (0...(nodes.length))
+      for i in (0...(nodes.length)) do
         @turn = 'white'
         move = nodes[i]
         piece = pieces[i]
@@ -1079,13 +1115,13 @@ class Main < Gosu::Window
           @next_piece_move_w = piece
         end
         undo_move()
-        @turn = 'black'
+        @turn = 'white'
         if max_score > alpha
           alpha = max_score
         end
         if beta <= alpha
           break
-        end
+        end  
       end
       return max_score
     else
@@ -1104,17 +1140,14 @@ class Main < Gosu::Window
         else
           value = search_best_move(move_list,depth-1,true,piece_list,alpha,beta)
         end
-        puts "value: #{value}"
         if value < min_score
           min_score= value
           @next_move_b = move
           @next_piece_move_b = piece
         end
-        @turn ='white'
-        puts "End of a move"
-        puts "piece: #{@next_piece_move_b}"
-        puts "move:#{@next_move_b}"
+        puts @turn
         undo_move()
+        puts @turn
         if min_score < beta
           beta = min_score
         end
@@ -1132,7 +1165,7 @@ class Main < Gosu::Window
       @last_white_locations << @white_locations.dup
       @last_white_pieces << @white_pieces.dup
       @last_black_locations << @black_locations.dup
-          @last_black_pieces << @black_pieces.dup
+      @last_black_pieces << @black_pieces.dup
       if @white_pieces[id] == 'rook'
         @white_rook_left_moved = true if piece ==[0,7]
         @white_rook_right_moved = true if piece ==[7,7]
