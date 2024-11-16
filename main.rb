@@ -1,5 +1,5 @@
 require 'gosu'
-DEPTH = 2
+DEPTH = 3
 WIDTH = 1000
 HEIGHT = 800
 CELL_DIM = 100
@@ -91,7 +91,8 @@ class Main < Gosu::Window
     @capture_sound = Gosu::Sample.new("./sounds/capture.mp3")
     column_index = 0 
     @check = false
-    @turn = "white"
+    @turn = "black"
+    first_bot_move = true
     @es_passant = false
     dark = true
     @winner = ''
@@ -182,6 +183,10 @@ class Main < Gosu::Window
     @black_locations =  [[0, 7], [1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [6, 7], [7, 7],[0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6], [7, 6]]
     @white_king_color = "GREEN"
     @black_king_color = "GRAY"
+    if @turn == 'black' and first_bot_move
+      @turn = 'white'
+      make_move_c1()
+    end
   end
   def draw_board
     @columns.each do |column|
@@ -706,8 +711,8 @@ class Main < Gosu::Window
             end
           end
           @turn = 'black'
-          make_move_c1()
           @holding = false
+          make_move_c1()
         elsif @turn == "black"
           if @es_passant and @pos_move.include?([@last_pos[-1][0],2]) and mouse_pos == [@last_pos[-1][0],2]
             if @white_locations.include?([mouse_pos[0],mouse_pos[1]+1])
@@ -732,8 +737,8 @@ class Main < Gosu::Window
             end
           end
           @turn = "white"
+          @holding = false
           make_move_c1()
-          @holding = false  
         end
         @pos_move = nil
       else
@@ -784,7 +789,8 @@ class Main < Gosu::Window
       @all_pos_move_check = check_all_option(@white_pieces,@white_locations)
       if @all_pos_move_check.include?(king_location)
         @check = true
-      else @check = false
+      else 
+        @check = false
       end
     elsif @turn == "black"
       king_index = @white_pieces.index('king')
@@ -1087,11 +1093,11 @@ class Main < Gosu::Window
   end
   def search_best_move(nodes,depth, isMaximizer,pieces,alpha,beta)
     if depth == 0
-      if @check
-        return -Float::INFINITY if @turn == 'white'
-        return Float::INFINITY if @turn == 'black'
-      end
-      return evaluate_move(@turn)
+      # if @check
+      #   return -Float::INFINITY if @turn == 'white'
+      #   return Float::INFINITY if @turn == 'black'
+      # end
+      return evaluate_move()
     end
     if isMaximizer 
       max_score = -Float::INFINITY
@@ -1105,18 +1111,23 @@ class Main < Gosu::Window
         move_list = generate_moves
         piece_list = generate_pieces
         if @check
-          value = - Float::INFINITY
+          value = -Float::INFINITY
+          @check = false
         else
           value = search_best_move(move_list,depth-1,false,piece_list,alpha,beta)
         end
+        
         if value > max_score
           max_score = value
-          @next_move_w = move
-          @next_piece_move_w = piece
+          if depth == DEPTH
+            @next_move_w = move
+            @next_piece_move_w = piece
+          end
         end
         undo_move()
         @turn = 'white'
         if max_score > alpha
+          puts 'max_score :' + max_score.to_s
           alpha = max_score
         end
         if beta <= alpha
@@ -1137,17 +1148,18 @@ class Main < Gosu::Window
         piece_list = generate_pieces
         if @check
           value = Float::INFINITY
+          @check = false
         else
           value = search_best_move(move_list,depth-1,true,piece_list,alpha,beta)
         end
         if value < min_score
-          min_score= value
-          @next_move_b = move
-          @next_piece_move_b = piece
+          min_score = value
+          if depth == DEPTH
+            @next_move_b = move
+            @next_piece_move_b = piece
+          end
         end
-        puts @turn
         undo_move()
-        puts @turn
         if min_score < beta
           beta = min_score
         end
@@ -1174,8 +1186,8 @@ class Main < Gosu::Window
         @white_king_moved = true
       end
       if piece == @white_locations[@white_pieces.index('king')] and (move == [1,0] or move == [5,0])
-        castling_move('king') if move ==[1,7]
-        castling_move('queen') if move == [5,7]
+        castling_move('king') if move ==[1,7] and can_castle?("king")
+        castling_move('queen') if move == [5,7] and can_castle?("queen")
       else
         @white_locations[id] = move
         if @black_locations.include?(move)
@@ -1188,7 +1200,6 @@ class Main < Gosu::Window
       @turn ='black'
       king_check()
       #@es_passant = can_es_passant?(piece)
-      @turn = 'black'
     elsif @turn =='black'
       @last_black_locations << @black_locations.dup
       @last_black_pieces << @black_pieces.dup
@@ -1203,8 +1214,8 @@ class Main < Gosu::Window
           @black_king_moved = true
         end
         if piece == @black_locations[@black_pieces.index('king')] and (move == [1,7] or move == [5,7])
-          castling_move('king') if move ==[1,7]
-          castling_move('queen') if move == [5,7]
+          castling_move('king') if move ==[1,7] and can_castle?("king")
+          castling_move('queen') if move == [5,7] and can_castle?("queen")
         else
         @black_locations[id] = move
         if @white_locations.include?(move)
@@ -1217,20 +1228,27 @@ class Main < Gosu::Window
       @turn ='white'
       king_check()
       #@es_passant = can_es_passant?(piece)
-      @turn = 'white'
     end
   end
 
   def make_move_c1
-    valid_moves = generate_moves
-    valid_pieces = generate_pieces
-    @next_move_b = nil
-    @next_piece_move_b = nil
-    search_best_move(valid_moves,DEPTH,false,valid_pieces,-Float::INFINITY,+Float::INFINITY)
-    puts "move: #{@next_move_b.inspect}"
-    puts "piece: #{@next_piece_move_b.inspect}"
-    @turn = 'black'
-    make_move(@next_move_b,@next_piece_move_b)
+    if @turn == 'black'
+      valid_moves = generate_moves
+      valid_pieces = generate_pieces
+      @next_move_b = nil
+      @next_piece_move_b = nil
+      value = search_best_move(valid_moves,DEPTH,false,valid_pieces,-Float::INFINITY,+Float::INFINITY)
+      @turn = 'black'
+      make_move(@next_move_b,@next_piece_move_b)
+    else 
+      valid_moves = generate_moves
+      valid_pieces = generate_pieces
+      @next_move_w = nil
+      @next_piece_move_w = nil
+      value = search_best_move(valid_moves,DEPTH,true,valid_pieces,-Float::INFINITY,+Float::INFINITY)
+      @turn = 'white'
+      make_move(@next_move_w,@next_piece_move_w)
+    end
   end
 
 end
