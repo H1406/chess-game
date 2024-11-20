@@ -10,64 +10,64 @@ BISHOP_VALUE = 30
 ROOK_VALUE =50
 QUEEN_VALUE = 90
 PAWN_TABLE=[
-  [100,100,100,100,100,100,100,100],
-  [90,90,90,90,90,90,90,90],
-  [30,30,10,30,30,30,30,30],
-  [10,10,40,60,60,40,10,10],
-  [10,10,40,60,60,40,10,10],
-  [30,30,30,50,50,30,30,30],
-  [90,90,90,90,90,90,90,90],
-  [100,100,100,100,100,100,100,100]
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [5, 6, 6, 6, 6, 6, 6, 5],
+    [4, 5, 5, 5, 5, 5, 5, 4],
+    [3, 4, 4, 5, 5, 4, 4, 3],
+    [2, 3, 3, 4, 4, 3, 3, 2],
+    [1, 2, 2, 3, 3, 2, 2, 1],
+    [0, 1, 1, 2, 2, 1, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0]
 ]
 KNIGHT_TABLE = [
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 40, 40, 0, 0, 0],
-  [0, 0, 60, 0, 0, 60, 0, 0],
-  [0, 0, 0, 50, 50, 0, 0, 0],
-  [0, 0, 0, 50, 50, 0, 0, 0],
-  [0, 0, 60, 0, 0, 60, 0, 0],
-  [0, 0, 0, 40, 40, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0]
+  [2, 3, 4, 4, 4, 4, 3, 2],
+  [3, 4, 6, 6, 6, 6, 4, 3],
+  [4, 6, 7, 8, 8, 7, 6, 4],
+  [4, 6, 8, 9, 9, 8, 6, 4],
+  [4, 6, 8, 9, 9, 8, 6, 4],
+  [4, 6, 7, 8, 8, 7, 6, 4],
+  [3, 4, 6, 6, 6, 6, 4, 3],
+  [2, 3, 4, 4, 4, 4, 3, 2]
 ]
 BISHOP_TABLE = [
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 60, 0, 30, 30, 0, 60, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 60, 0, 30, 30, 0, 60, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0]
+  [4, 4, 4, 4, 4, 4, 4, 4],
+    [4, 6, 6, 6, 6, 6, 6, 4],
+    [4, 6, 7, 7, 7, 7, 6, 4],
+    [4, 6, 7, 8, 8, 7, 6, 4],
+    [4, 6, 7, 8, 8, 7, 6, 4],
+    [4, 6, 7, 7, 7, 7, 6, 4],
+    [4, 6, 6, 6, 6, 6, 6, 4],
+    [4, 4, 4, 4, 4, 4, 4, 4]
 ]
 ROOK_TABLE = [
-  [0, 0, 0, 70, 70, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 70, 70, 0, 0, 0]
+    [6, 6, 6, 6, 6, 6, 6, 6],
+    [7, 8, 8, 8, 8, 8, 8, 7],
+    [5, 6, 6, 6, 6, 6, 6, 5],
+    [5, 6, 6, 6, 6, 6, 6, 5],
+    [5, 6, 6, 6, 6, 6, 6, 5],
+    [5, 6, 6, 6, 6, 6, 6, 5],
+    [7, 8, 8, 8, 8, 8, 8, 7],
+    [6, 6, 6, 6, 6, 6, 6, 6]
 ]
 QUEEN_TABLE = [
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0]
+  [4, 5, 5, 6, 6, 5, 5, 4],
+    [5, 6, 6, 6, 6, 6, 6, 5],
+    [5, 6, 7, 7, 7, 7, 6, 5],
+    [6, 6, 7, 8, 8, 7, 6, 6],
+    [6, 6, 7, 8, 8, 7, 6, 6],
+    [5, 6, 7, 7, 7, 7, 6, 5],
+    [5, 6, 6, 6, 6, 6, 6, 5],
+    [4, 5, 5, 6, 6, 5, 5, 4]
 ]
 KING_TABLE = [
-  [0, 0, 100, 0, 0, 0, 100, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 100, 0, 0, 0, 100, 0]
+  [0, 1, 1, 1, 1, 1, 1, 0],
+    [1, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 3, 3, 3, 3, 2, 1],
+    [1, 2, 3, 4, 4, 3, 2, 1],
+    [1, 2, 3, 4, 4, 3, 2, 1],
+    [1, 2, 3, 3, 3, 3, 2, 1],
+    [1, 2, 2, 2, 2, 2, 2, 1],
+    [0, 1, 1, 1, 1, 1, 1, 0]
 ]
 
 module ZOrder
@@ -91,14 +91,14 @@ class Main < Gosu::Window
     @capture_sound = Gosu::Sample.new("./sounds/capture.mp3")
     column_index = 0 
     @check = false
-    @turn = "black"
+    @turn = "white"
     first_bot_move = true
     @es_passant = false
     dark = true
     @winner = ''
     @holding = false
     @last_pos = []
-    @last_piece
+    @last_piece = []
     @all_pos_move_check = []
     @piece_to_move
     @all_piece_move=[]
@@ -106,22 +106,22 @@ class Main < Gosu::Window
     @last_black_locations=[]
     @last_white_pieces = []
     @last_black_pieces = []
-    @white_king_moved = []
-    @black_king_moved = []
-    @white_rook_left_moved = []
-    @white_rook_right_moved = []
-    @black_rook_left_moved = []
-    @black_rook_right_moved = []
-    @check_mate = false
-    @stale_mate = false
-    @to_delete_p = []
-    # Tracking king and rook movements
     @white_king_moved = false
     @black_king_moved = false
     @white_rook_left_moved = false
     @white_rook_right_moved = false
     @black_rook_left_moved = false
     @black_rook_right_moved = false
+    @check_mate = false
+    @stale_mate = false
+    @to_delete_p = []
+    # Tracking king and rook movements
+    @white_king_moves = [false]
+    @black_king_moves = [false]
+    @white_rook_left_moves = [false]
+    @white_rook_right_moves = [false]
+    @black_rook_left_moves = [false]
+    @black_rook_right_moves = [false]
     @temp_pieces
     @temp_locations
     @to_delete = []
@@ -677,6 +677,12 @@ class Main < Gosu::Window
       @last_black_pieces << @black_pieces.dup 
       @last_white_locations << @white_locations.dup 
       @last_white_pieces << @white_pieces.dup 
+      @white_king_moves << @white_king_moved
+      @black_king_moves << @black_king_moved
+      @white_rook_left_moves << @white_rook_left_moved
+      @white_rook_right_moves << @white_rook_right_moved
+      @black_rook_left_moves << @black_rook_left_moved
+      @black_rook_right_moves << @black_rook_right_moved
       if @pos_move.include?(mouse_pos)
         if @white_pieces[@current_piece] == 'king' or @black_pieces[@current_piece]=='king'
           @white_king_moved = true if @turn == "white"
@@ -838,14 +844,26 @@ class Main < Gosu::Window
   end
   def undo_move()  
     if @last_white_locations.length > 0
-      @white_pieces = @last_white_pieces[-1].dup
-      @white_locations = @last_white_locations[-1].dup
+      @white_pieces = @last_white_pieces[-1]
+      @white_locations = @last_white_locations[-1]
       @last_white_locations.delete_at(-1)
       @last_white_pieces.delete_at(-1)
-      @black_locations = @last_black_locations[-1].dup
-      @black_pieces = @last_black_pieces[-1].dup
+      @black_locations = @last_black_locations[-1]
+      @black_pieces = @last_black_pieces[-1]
       @last_black_locations.delete_at(-1)
       @last_black_pieces.delete_at(-1)
+      @white_king_moved = @white_king_moves[-1]
+      @black_king_moved = @black_king_moves[-1]
+      @white_rook_left_moved = @white_rook_left_moves[-1]
+      @white_rook_right_moved = @white_rook_right_moves[-1]
+      @black_rook_left_moved = @black_rook_left_moves[-1]
+      @black_rook_right_moved = @black_rook_right_moves[-1]
+      @white_king_moves.delete_at(-1)
+      @black_king_moves.delete_at(-1)
+      @white_rook_left_moves.delete_at(-1)
+      @white_rook_right_moves.delete_at(-1)
+      @black_rook_left_moves.delete_at(-1)
+      @black_rook_right_moves.delete_at(-1)
       @turn = 'black' if @turn =='white'
       @turn ='white' if @turn =='black'
     end
@@ -952,13 +970,66 @@ class Main < Gosu::Window
   end
   
   def evaluate_move
-    white_val = count_material('white')
-    black_val = count_material('black')
+    white_val = count_material('white') + count_score('white')
+    black_val = count_material('black') + count_score('black')
     evaluation = white_val - black_val
     perspective = (@turn == 'white')? 1 : -1
     return evaluation
   end
-  
+  def count_score(color)
+    score = 0
+    if color == 'white'
+      @white_locations.each do |location|
+        piece = @white_pieces[@white_locations.index(location)]
+        case piece
+        when "pawn"
+          score += PAWN_TABLE[location[0]][location[1]]
+        when 'rook'
+          score += ROOK_TABLE[location[0]][location[1]]
+        when 'knight'
+          score += KNIGHT_TABLE[location[0]][location[1]]
+        when 'bishop'
+          score+= BISHOP_TABLE[location[0]][location[1]]
+        when 'queen'
+          score+= QUEEN_TABLE[location[0]][location[1]]
+        when 'king'
+          score+= KING_TABLE[location[0]][location[1]]
+        end
+      end
+    else
+      PAWN_TABLE.reverse
+      ROOK_TABLE.reverse
+      BISHOP_TABLE.reverse
+      KNIGHT_TABLE.reverse
+      QUEEN_TABLE.reverse
+      KING_TABLE.reverse
+      @black_locations.each do |location|
+        piece = @black_pieces[@black_locations.index(location)]
+        case piece
+        when "pawn"
+          score += PAWN_TABLE[location[0]][location[1]]
+        when 'rook'
+          score += ROOK_TABLE[location[0]][location[1]]
+        when 'knight'
+          score += KNIGHT_TABLE[location[0]][location[1]]
+        when 'bishop'
+          score+= BISHOP_TABLE[location[0]][location[1]]
+        when 'queen'
+          score+= QUEEN_TABLE[location[0]][location[1]]
+        when 'king'
+          score+= KING_TABLE[location[0]][location[1]]
+        end
+      end
+      PAWN_TABLE.reverse
+      ROOK_TABLE.reverse
+      BISHOP_TABLE.reverse
+      KNIGHT_TABLE.reverse
+      QUEEN_TABLE.reverse
+      KING_TABLE.reverse
+    end
+    perspective = (@turn == 'white')? 1 : -1
+    return score*perspective
+  end
   def count_material(color)
     material = 0 
     if color == 'black'
@@ -1093,10 +1164,6 @@ class Main < Gosu::Window
   end
   def search_best_move(nodes,depth, isMaximizer,pieces,alpha,beta)
     if depth == 0
-      # if @check
-      #   return -Float::INFINITY if @turn == 'white'
-      #   return Float::INFINITY if @turn == 'black'
-      # end
       return evaluate_move()
     end
     if isMaximizer 
@@ -1127,12 +1194,14 @@ class Main < Gosu::Window
         undo_move()
         @turn = 'white'
         if max_score > alpha
-          puts 'max_score :' + max_score.to_s
           alpha = max_score
         end
         if beta <= alpha
           break
         end  
+      end
+      if max_score == -Float::INFINITY and depth == DEPTH
+        @check_mate = true
       end
       return max_score
     else
@@ -1167,6 +1236,9 @@ class Main < Gosu::Window
           break
         end
       end
+      if min_score == Float::INFINITY and depth == DEPTH
+        @check_mate = true
+      end
       return min_score
     end
   end
@@ -1197,9 +1269,9 @@ class Main < Gosu::Window
           end
         end
       end
+      @es_passant = can_es_passant?(id)
       @turn ='black'
       king_check()
-      #@es_passant = can_es_passant?(piece)
     elsif @turn =='black'
       @last_black_locations << @black_locations.dup
       @last_black_pieces << @black_pieces.dup
@@ -1225,9 +1297,9 @@ class Main < Gosu::Window
           end
         end
       end
+      @es_passant = can_es_passant?(id)
       @turn ='white'
       king_check()
-      #@es_passant = can_es_passant?(piece)
     end
   end
 
@@ -1239,7 +1311,9 @@ class Main < Gosu::Window
       @next_piece_move_b = nil
       value = search_best_move(valid_moves,DEPTH,false,valid_pieces,-Float::INFINITY,+Float::INFINITY)
       @turn = 'black'
-      make_move(@next_move_b,@next_piece_move_b)
+      if !@check_mate
+        make_move(@next_move_b,@next_piece_move_b)
+      end
     else 
       valid_moves = generate_moves
       valid_pieces = generate_pieces
@@ -1247,7 +1321,9 @@ class Main < Gosu::Window
       @next_piece_move_w = nil
       value = search_best_move(valid_moves,DEPTH,true,valid_pieces,-Float::INFINITY,+Float::INFINITY)
       @turn = 'white'
-      make_move(@next_move_w,@next_piece_move_w)
+      if !@check_mate
+        make_move(@next_move_w,@next_piece_move_w)
+      end
     end
   end
 
