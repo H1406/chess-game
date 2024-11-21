@@ -1262,6 +1262,9 @@ class Main < Gosu::Window
         castling_move('queen') if move == [5,7] and can_castle?("queen")
       else
         @white_locations[id] = move
+        if @white_pieces[id] = 'pawn' and move[1] == 7
+          @white_pieces[id] = 'queen'
+        end
         if @black_locations.include?(move)
           if @black_pieces[@black_locations.index(move)] != 'king'
             @black_pieces.delete_at(@black_locations.index(move))
@@ -1290,6 +1293,9 @@ class Main < Gosu::Window
           castling_move('queen') if move == [5,7] and can_castle?("queen")
         else
         @black_locations[id] = move
+        if @black_pieces[id] = 'pawn' and move[1] == 0
+          @black_pieces[id] = 'queen'
+        end
         if @white_locations.include?(move)
           if @white_pieces[@white_locations.index(move)] != 'king'
           @white_pieces.delete_at(@white_locations.index(move))
