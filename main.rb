@@ -1,5 +1,5 @@
 require 'gosu'
-DEPTH = 3
+DEPTH = 2
 WIDTH = 1000
 HEIGHT = 800
 CELL_DIM = 100
@@ -113,7 +113,6 @@ class Main < Gosu::Window
     @black_rook_left_moved = false
     @black_rook_right_moved = false
     @check_mate = false
-    @stale_mate = false
     @to_delete_p = []
     # Tracking king and rook movements
     @white_king_moves = [false]
@@ -251,10 +250,8 @@ class Main < Gosu::Window
     draw_pieces
     draw_pos_move
     if @check_mate 
-      # Gosu.draw_rect(850,250,105,50,Gosu::Color::BLACK,ZOrder::BACKGROUND,mode=:default)
       @font.draw_text("OVER",855,255,ZOrder::MIDDLE,1.0,1.0,Gosu::Color::RED,mode=:default)
     elsif @stale_mate
-      # Gosu.draw_rect(850,250,110,50,Gosu::Color::BLACK,ZOrder::BACKGROUND,mode=:default)
       @font.draw_text("DRAW",855,255,ZOrder::MIDDLE,1.0,1.0,Gosu::Color::RED,mode=:default)
     end
   end
@@ -587,6 +584,7 @@ class Main < Gosu::Window
   def check_mate()
     if @turn == 'white'
       all_pos_move = check_all_option(@black_pieces,@black_locations)
+      puts all_pos_move.length
       all_piece = check_all_piece(@black_pieces,@black_locations)
       deletes = []
       for i in (0...(all_pos_move.length))
@@ -596,9 +594,9 @@ class Main < Gosu::Window
           deletes << i
           @check = false
         end
-        undo_move()
-        @turn ='black'
+        undo_move(true)
       end
+      @turn = 'white'
       deletes.each do |i|
         all_pos_move.delete_at(i)
       end
@@ -616,17 +614,18 @@ class Main < Gosu::Window
           deletes << i
           @check = false
         end
-        undo_move()
-        @turn ='white'
+        undo_move(true)
       end
+      @turn = 'black'
       deletes.each do |i|
         all_pos_move.delete_at(i)
       end
       if all_pos_move.length ==0
         return true
       end
+      return false
     end
-    return false
+
   end
   def make_move_p()
     x = (mouse_x / CELL_DIM).floor
@@ -716,9 +715,10 @@ class Main < Gosu::Window
               @white_pieces[@current_piece] = 'queen'
             end
           end
+          check_mate()
           @turn = 'black'
           @holding = false
-          make_move_c1()
+          # make_move_c1()
         elsif @turn == "black"
           if @es_passant and @pos_move.include?([@last_pos[-1][0],2]) and mouse_pos == [@last_pos[-1][0],2]
             if @white_locations.include?([mouse_pos[0],mouse_pos[1]+1])
@@ -742,9 +742,10 @@ class Main < Gosu::Window
               @black_pieces[@current_piece] = 'queen'
             end
           end
+          check_mate()
           @turn = "white"
           @holding = false
-          make_move_c1()
+          # make_move_c1()
         end
         @pos_move = nil
       else
@@ -788,6 +789,12 @@ class Main < Gosu::Window
     end
     @holding = false
   end
+  # Check if the current player is in check.
+  #
+  # For the current player, find the index and location of the king.
+  # Get the list of all possible moves for the other player.
+  # If the king's location is in the other player's possible moves, set
+  # @check to true; otherwise set it to false.
   def king_check()
     if @turn == "white"
       king_index = @black_pieces.index('king')
@@ -810,6 +817,7 @@ class Main < Gosu::Window
     end
   end
   def can_castle?(side)
+   
     if @turn == 'white'
       @all_pos_move_check = check_all_option(@black_pieces,@black_locations)
       return false if @white_king_moved
@@ -842,7 +850,7 @@ class Main < Gosu::Window
     @all_pos_move_check = []
     return true
   end
-  def undo_move()  
+  def undo_move(bot)  
     if @last_white_locations.length > 0
       @white_pieces = @last_white_pieces[-1]
       @white_locations = @last_white_locations[-1]
@@ -864,8 +872,21 @@ class Main < Gosu::Window
       @white_rook_right_moves.delete_at(-1)
       @black_rook_left_moves.delete_at(-1)
       @black_rook_right_moves.delete_at(-1)
-      @turn = 'black' if @turn =='white'
-      @turn ='white' if @turn =='black'
+      if bot == true
+        @turn = 'black' if @turn =='white'
+        @turn ='white' if @turn =='black'
+      else
+        if @holding == true
+          @turn = 'white' if @turn =='black'
+          @turn = 'black' if @turn == 'white' 
+        else
+          if @last_white_locations.length % 2 == 0
+            @turn = 'white'
+          else
+            @turn = 'black'
+          end
+        end
+      end
     end
   end
   def reset()
@@ -890,7 +911,7 @@ class Main < Gosu::Window
         reset()
       end
       if mouse_x >= 850 and mouse_x <= 950 and mouse_y > 150 and mouse_y < 200
-        undo_move()
+        undo_move(false)
       end
       if !@check_mate
         make_move_p()
@@ -973,7 +994,6 @@ class Main < Gosu::Window
     white_val = count_material('white') + count_score('white')
     black_val = count_material('black') + count_score('black')
     evaluation = white_val - black_val
-    perspective = (@turn == 'white')? 1 : -1
     return evaluation
   end
   def count_score(color)
@@ -1027,8 +1047,7 @@ class Main < Gosu::Window
       QUEEN_TABLE.reverse
       KING_TABLE.reverse
     end
-    perspective = (@turn == 'white')? 1 : -1
-    return score*perspective
+    return score
   end
   def count_material(color)
     material = 0 
@@ -1191,7 +1210,7 @@ class Main < Gosu::Window
             @next_piece_move_w = piece
           end
         end
-        undo_move()
+        undo_move(true)
         @turn = 'white'
         if max_score > alpha
           alpha = max_score
@@ -1228,7 +1247,7 @@ class Main < Gosu::Window
             @next_piece_move_b = piece
           end
         end
-        undo_move()
+        undo_move(true)
         if min_score < beta
           beta = min_score
         end
@@ -1262,7 +1281,7 @@ class Main < Gosu::Window
         castling_move('queen') if move == [5,7] and can_castle?("queen")
       else
         @white_locations[id] = move
-        if @white_pieces[id] = 'pawn' and move[1] == 7
+        if @white_pieces[id] == 'pawn' and move[1] == 7
           @white_pieces[id] = 'queen'
         end
         if @black_locations.include?(move)
@@ -1293,7 +1312,7 @@ class Main < Gosu::Window
           castling_move('queen') if move == [5,7] and can_castle?("queen")
         else
         @black_locations[id] = move
-        if @black_pieces[id] = 'pawn' and move[1] == 0
+        if @black_pieces[id] == 'pawn' and move[1] == 0
           @black_pieces[id] = 'queen'
         end
         if @white_locations.include?(move)
